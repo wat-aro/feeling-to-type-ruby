@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+  <head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# article: http://ogp.me/ns/article#">
+    <meta charset="utf-8">
+
+<title>Slides</title>
+
+<meta name="description" content="">
+<meta name="author" content="">
+<meta name="generator" content="reveal-ck 3.9.2">
+
+
+
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+<link rel="stylesheet" href="css/reveal.css">
+<link rel="stylesheet" href="css/theme/black.css" id="theme">
+
+<!-- Code syntax highlighting -->
+<link rel="stylesheet" href="lib/css/zenburn.css">
+
+<link rel="stylesheet" href="css/reveal-ck.css">
+
+
+<!-- Printing and PDF exports -->
+<script>
+  var link = document.createElement( 'link' );
+  link.rel = 'stylesheet';
+  link.type = 'text/css';
+  link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+  document.getElementsByTagName( 'head' )[0].appendChild( link );
+</script>
+
+<!--[if lt IE 9]>
+<script src="lib/js/html5shiv.js"></script>
+<![endif]-->
+
+  </head>
+
+  <body>
+    <div class="reveal">
+  <!-- Any section element inside of this container is displayed as a slide -->
+  <div class="slides">
+    <section>
+
+<h1>Ruby に型をつけるお気持ち</h1>
+
+<p>wat-aro</p>
+
+</section>
+<section>
+
+<h2>自己紹介</h2>
+
+<ul>
+  <li>wat-aro</li>
+  <li>Haskell, Elmなんかが好き</li>
+</ul>
+
+</section>
+<section>
+
+<h2>おしながき</h2>
+
+<ul>
+  <li>Ruby の型のおさらい</li>
+  <li>ruby-signature の記法</li>
+  <li>実例を通して</li>
+</ul>
+
+</section>
+<section>
+<section>
+
+<h3>
+<code>Ruby</code> の型のおさらい</h3>
+
+<ul>
+  <li>型検査器 steep, sorbet</li>
+  <li>rbi ファイルに型定義を書くがそれぞれ文法が違う</li>
+  <li>Ruby 3 では型シグネチャが導入される</li>
+  <li>周辺ツール群は外部ライブラリとして提供</li>
+</ul>
+
+</section>
+<section>
+
+<h3>
+<code>Ruby</code> の型シグナチャ</h3>
+
+<ul>
+  <li>ruby-signature</li>
+  <li><a href="https://github.com/ruby/ruby-signature">https://github.com/ruby/ruby-signature</a></li>
+  <li>steep, sorbet にこのシグネチャを使ってもらう</li>
+</ul>
+
+</section>
+</section>
+
+<section>
+<section>
+
+<h2>
+<code>ruby-signature</code> の記法</h2>
+
+<ul>
+  <li>プリミティブな型は Class instance type で定義</li>
+  <li>Interface type であるメソッドを持った型というのも定義できる</li>
+  <li>Literal type, Union Type, Intersection type, Optional type で柔軟な型定義ができる</li>
+  <li>ivar や メソッドの型定義も直観的</li>
+  <li>型付けできないものは <code>untyped</code>
+</li>
+</ul>
+
+</section>
+<section>
+
+<h3>プリミティブな型</h3>
+
+<ul>
+  <li>Integer</li>
+  <li>String</li>
+  <li>Hash[Symbol, String]</li>
+</ul>
+
+</section>
+<section>
+
+<h3><code>Record type</code></h3>
+
+<ul>
+  <li>Hash の型を指定</li>
+  <li><code>{ id: Integer, name: String }</code></li>
+</ul>
+
+</section>
+<section>
+
+<h3><code>Interface type</code></h3>
+
+<p>例: each メソッドを持っている型</p>
+
+<pre><code class="language-ruby">interface _Each[A, B]
+  def each: { (A) -&gt; void } -&gt; B
+end
+</code></pre>
+
+</section>
+<section>
+
+<h3><code>Literal type</code></h3>
+
+<ul>
+  <li>型の取り得る値を限定できる</li>
+  <li>
+<code>1</code> という型は Integer かつ 値を <code>1</code> に限定</li>
+  <li>“hello world”という型や<code>:to_s</code>という型を定義可能</li>
+</ul>
+
+</section>
+<section>
+
+<h3><code>Union type</code></h3>
+
+<ul>
+  <li>型の和を表わす</li>
+  <li>
+<code>Integer | String</code> は Integer or String</li>
+</ul>
+
+</section>
+<section>
+
+<h3><code>Intersection type</code></h3>
+
+<ul>
+  <li>交差型</li>
+  <li>
+<code>Integer &amp; String</code> は Integer and String</li>
+  <li>Hash の合成が主な用途？</li>
+  <li>
+<code>{ id: Integer } &amp; { name: String }</code> は <code>{ id: Integer, name: String }</code>
+</li>
+</ul>
+
+</section>
+<section>
+
+<h3><code>Optional type</code></h3>
+
+<ul>
+  <li>みんな大好き null 安全</li>
+  <li>
+<code>Integer?</code> で <code>Integer | nil</code>
+</li>
+</ul>
+
+</section>
+<section>
+
+<h3>ivar やメソッドの型定義</h3>
+
+<ul>
+  <li>
+<code>@name: String</code> で ivar</li>
+  <li>
+<code>def to_s: () -&gt; String</code> でメソッドを定義</li>
+</ul>
+
+</section>
+<section>
+
+<h3>所見</h3>
+
+<ul>
+  <li>TypeScript の影響が強い
+    <ul>
+      <li>Literal type</li>
+      <li>Intersection type</li>
+    </ul>
+  </li>
+  <li>Interface type があればダックタイプもやりやすそう</li>
+  <li>想像していたよりもリッチ</li>
+  <li>any じゃなくて untyped なのはわかりやすくていい</li>
+</ul>
+
+</section>
+</section>
+
+<section>
+<section>
+
+<h2>実例を通して</h2>
+
+<p>ruby-signature はまだ StandardLibrary の片付けが終わっていないので<br>
+適当なものに型をつけてみる</p>
+
+</section>
+<section>
+
+<h3>Abbrev モジュール</h3>
+
+<ul>
+  <li>StandardLibrary で最初に表示されている</li>
+  <li>module_function abbrev 一つだけのモジュールなので簡単</li>
+  <li>まだ ruby-signature で定義されていない</li>
+</ul>
+
+</section>
+<section>
+
+<h3>Abbrev#abbrev とは</h3>
+
+<p><code>abbrev(words, pattern = nil)</code></p>
+
+<pre><code class="language-ruby">Abbrev.abbrev(['ruby'])
+#=&gt;  {"ruby"=&gt;"ruby", "rub"=&gt;"ruby", "ru"=&gt;"ruby", "r"=&gt;"ruby"}
+
+Abbrev.abbrev(%w{ car cone })
+#=&gt; {"ca"=&gt;"car", "con"=&gt;"cone", "co"=&gt;"cone", "car"=&gt;"car", "cone"=&gt;"cone"}
+
+Abbrev.abbrev(%w{car box cone crab}, /b/)
+#=&gt; {"box"=&gt;"box", "bo"=&gt;"box", "b"=&gt;"box", "crab" =&gt; "crab"}
+
+Abbrev.abbrev(%w{car box cone}, 'ca')
+#=&gt; {"car"=&gt;"car", "ca"=&gt;"car"}
+</code></pre>
+
+<p>String の配列をうけとり、String を分解して key とし、元の String を value とするHashを返す</p>
+
+</section>
+<section>
+
+<h3>まずはシンプルなケース</h3>
+
+<pre><code class="language-ruby">Abbrev.abbrev(['ruby'])
+#=&gt;  {"ruby"=&gt;"ruby", "rub"=&gt;"ruby", "ru"=&gt;"ruby", "r"=&gt;"ruby"}
+</code></pre>
+
+<p>これに型を付けると</p>
+
+<pre><code class="language-ruby">module Abbrev
+  def self?.abbrev: (Array[String]) -&gt; Hash[String, String]
+end
+</code></pre>
+
+<p><code>def self?</code> は module function 用の書き方<br>
+空配列を受け取っても空ハッシュを返すだけなので問題なし。</p>
+
+</section>
+<section>
+
+<h3>第2引数について</h3>
+
+<p>example を見ると String と Regexp を受け取ることを想定しているよう</p>
+
+<pre><code class="language-ruby">Abbrev.abbrev(%w{car box cone crab}, /b/)
+#=&gt; {"box"=&gt;"box", "bo"=&gt;"box", "b"=&gt;"box", "crab" =&gt; "crab"}
+
+Abbrev.abbrev(%w{car box cone}, 'ca')
+#=&gt; {"car"=&gt;"car", "ca"=&gt;"car"}
+</code></pre>
+
+<p>じゃあ Integer とか渡したらエラーになるのかな？</p>
+
+</section>
+<section>
+
+<h3>想定していなさそうな型の引数を渡してみる</h3>
+
+<pre><code class="language-ruby">Abbrev.abbrev(%w{12345}, 1)
+#=&gt; {}
+</code></pre>
+
+<p>エラーにならないだと…<br>
+この場合って型はどうつければいいのか。<br>
+実装を abbrev の実装を見てみると</p>
+
+</section>
+<section>
+
+<h3>abbrev の実装</h3>
+
+<ul>
+  <li>String, Regexp以外は <code>!~</code> を直接使っている</li>
+  <li>
+<code>Integer#!~</code> は常に true を返す</li>
+</ul>
+
+<pre><code class="language-ruby">def abbrev(words, pattern = nil)
+  ...
+  if pattern.is_a?(String)
+    pattern = /\A#{Regexp.quote(pattern)}/  # regard as a prefix
+  end
+</code></pre>
+
+<pre><code class="language-ruby">  words.each do |word|
+    next if word.empty?
+    word.size.downto(1) { |len|
+      abbrev = word[0...len]
+      next if pattern &amp;&amp; pattern !~ abbrev
+      ...
+    }
+  end
+end
+</code></pre>
+
+<pre><code class="language-ruby">  words.each do |word|
+    next if pattern &amp;&amp; pattern !~ word
+    table[word] = word
+  end
+  table
+end
+</code></pre>
+
+</section>
+<section>
+
+<h3>abbrev の第2引数は String, Regexp 以外を考慮していない</h3>
+
+<ul>
+  <li>String, Regexp 以外を考慮しておらず、たまたま <code>{}</code> を返すようになっているだけに見える</li>
+  <li>実行時にエラーにならない場合はどう型をつければよいのか
+    <ul>
+      <li>Integer or Object を引数に取ることを認める</li>
+      <li>String と Regexp 以外は認めない</li>
+    </ul>
+  </li>
+</ul>
+
+</section>
+<section>
+
+<h3>このような場合にどうすればよいか</h3>
+
+<ul>
+  <li>ドキュメントにどう書かれているか</li>
+  <li>エラーでないために困る場合を想定してどう検査してほしいかを考える</li>
+</ul>
+
+</section>
+<section>
+
+<h3>ドキュメント</h3>
+
+<blockquote>
+  <p>The optional pattern parameter is a pattern or a string.<br>
+Only input strings that match the pattern or start with the string are included in the output hash.</p>
+</blockquote>
+
+<p>pattern とは言っているけれど、それがRegexpとは限定していない。</p>
+
+</section>
+<section>
+
+<h3>エラーでないために困る場合を想定してどう検査してほしいかを考える</h3>
+
+<p>何かのメソッドの返り値がStringやRegexpだと思っていたのにIntegerだった場合</p>
+
+<pre><code class="language-ruby">def some_method: () -&gt; (String | Integer)
+
+pattern = some_method()
+
+Abbrev.abbrev(["12345"], pattern)
+#=&gt; {}
+</code></pre>
+
+<p>Integerが来てここでエラーにならなくてもその後で不整合がおこる場合に困る。<br>
+ここを通るテストがない場合になぜ駄目なのかの調査が必要になる。<br>
+それよりも型検査で弾いてくれたほうが嬉しい。</p>
+
+</section>
+<section>
+
+<h3>結果</h3>
+
+<pre><code class="language-ruby">module Abbrev
+  def self?.abbrev: (Array[String], ?(String | Regexp | nil)) -&gt; Hash[String, String]
+end
+
+</code></pre>
+
+<p>第2引数は String, Regexp, nil としました。<br>
+この定義でruby-signatureにPRを送ってマージされた。</p>
+
+</section>
+</section>
+<section>
+
+<h2>まとめ</h2>
+
+<ul>
+  <li>ruby-signature の紹介</li>
+  <li>ドキュメントにない場合でもそれっぽく動く場合がある</li>
+  <li>どう動いてほしいかを考えて型をつけないといけない場合がある</li>
+</ul>
+
+</section>
+
+  </div>
+</div>
+
+<script src="lib/js/head.min.js"></script>
+<script src="js/reveal.js"></script>
+
+
+<script>
+  (function() {
+  function extend( a, b ) {
+    for(var i in b) {
+      a[i] = b[i];
+    }
+  }
+  var baseOptions = {
+    transition: 'default',
+
+    dependencies: [
+      { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+      { src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+      { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+      { src: 'plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+      { src: 'plugin/zoom-js/zoom.js', async: true },
+      { src: 'plugin/notes/notes.js', async: true }
+    ]
+  };
+
+  
+
+  var configOptions = {"controls":true,"progress":true,"history":true,"center":true}
+  var initializeOptions = {};
+  extend(initializeOptions, baseOptions);
+  extend(initializeOptions, configOptions);
+  Reveal.initialize(initializeOptions);
+})();
+
+</script>
+
+  </body>
+</html>
